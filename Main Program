@@ -1,0 +1,503 @@
+
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+using namespace std;
+
+struct treenode
+{
+        int dat;
+        treenode *lchild;
+        treenode *rchild;
+};
+
+class bstree
+{
+        public:
+                bstree();
+                void in( );
+                void pre( );
+                void post( );
+                void paren( );
+                void insert( int x );
+                void remove( int x );
+                int numnodes();
+                int height();
+        private:
+                treenode *root;
+                void in( treenode *t );
+                void pre( treenode *t );
+                void post( treenode *t );
+                void paren( treenode *t );
+                void insert( treenode *t, treenode *n );
+                treenode *findval( int x, treenode *t);
+                treenode *rsmall(treenode *t);
+                int _numnodes(treenode *t, int x);
+                int _height(treenode *t);
+};
+
+bstree::bstree()
+{
+                root = NULL;
+}
+
+void bstree::in(treenode * t)
+{
+        if ( t == NULL )
+                 return;
+
+        in(t->lchild);
+        printf("%2d ", t->dat);
+        in(t->rchild);
+}
+
+void bstree::pre(treenode * t)
+{
+        if ( t == NULL )
+                 return;
+
+        printf("%2d ", t->dat);
+        pre(t->lchild);
+        pre(t->rchild);
+}
+
+void bstree::post(treenode * t)
+{
+        // IN CLASS
+        if ( t == NULL )
+                 return;
+
+        post(t->lchild);
+        post(t->rchild);
+        printf("%2d ", t->dat);
+
+}
+
+void bstree::paren(treenode * t)
+{
+
+        cout << "(";
+
+        if(t!=NULL)
+        {
+                cout << t->dat;
+                paren(t->lchild);
+                paren(t->rchild);
+
+        }
+
+        cout << ")";
+
+}
+
+void bstree::in()
+{
+        in(root);
+}
+
+void bstree::pre()
+{
+        pre(root);
+}
+
+void bstree::post()
+{
+        post(root);
+}
+
+void bstree::paren()
+{
+        paren(root);
+}
+
+void bstree::insert( int x )
+{
+        treenode *t1;
+
+        t1 = new treenode();
+        t1->dat = x;
+        t1->lchild = NULL;
+        t1->rchild = NULL;
+
+        // IN CLASS
+        if(root==NULL)
+                root=t1;
+        else
+                insert(root, t1);
+
+}
+
+void bstree::insert( treenode *t, treenode *n )
+{
+
+        if(n->dat < t->dat)
+        {
+
+                if(t->lchild== NULL)
+                        {
+                                t->lchild=n;
+                                return;
+                        }
+                else
+                         insert(t->lchild, n);
+        }
+        else if (n->dat > t->dat)
+        {
+
+                if(t->rchild == NULL)
+                        {
+                                t->rchild=n;
+                                return;
+                        }
+                else
+                         insert(t->rchild,n);
+        }
+
+
+
+}
+
+
+
+treenode *bstree::findval( int x, treenode *t)
+{
+        // IN CLASS
+        if(root==NULL)
+        {
+                cout << "List empty. Try again" << endl;
+                return t;
+        }
+
+        //Search scenarios 1
+        if(x>t->dat)
+        {
+                if(t->rchild==NULL)
+                {
+                        cout << "DEFEAT" << x << "is not in list" << endl;
+                }
+
+                        return findval(x, t->rchild);
+        }
+        //Search scenario 2
+        else if(x < t->dat)
+        {
+                if(t->lchild==NULL)
+                        cout << "Defeat" << x << "is not in the list" << endl;
+
+                   return findval(x, t->lchild);
+        }//Victory scenario. Value found
+        else
+        {
+                cout << "VICTORY!" << x << "is in the list" << endl;
+                return t;
+        }
+}
+
+treenode *bstree::rsmall(treenode *t)
+{
+        if(t->lchild==NULL)
+                return t;
+        else
+                return rsmall(t->lchild);
+
+}
+
+
+void bstree::remove( int x )
+{
+        treenode *t;
+        treenode *rem, *parent;
+        int q=0;
+
+        rem = findval( x, root );
+        t=root;
+        // SET UP
+
+        //If root is the only node because reasons
+        if(root->lchild==NULL&&root->rchild==NULL)
+        {
+                delete t;
+                return;
+        }
+
+
+
+        //If root has 1 child
+        if(x==root->dat&&t->lchild!=NULL||x==root->dat&&t->rchild!=NULL)
+        {
+
+                //Case if root has 1 left child
+                if(t->lchild!=NULL)
+                        {
+                                t=rsmall(rem->rchild);
+                                q=t->dat;
+                                remove(t->dat);
+                                rem->dat=q;
+                                return;
+                        }
+                //Case if root has 1 right child
+                if(t->rchild!=NULL)
+                        {
+
+                                t=rsmall(rem->rchild);
+                                q=t->dat;
+                                remove(t->dat);
+                                rem->dat=q;
+                                return;
+                        }
+
+        }
+
+        //If root has 2 children
+        if(x==root->dat&&rem->lchild!=NULL&&rem->rchild!=NULL)
+        {
+                t=rsmall(rem->rchild);
+                int y=t->dat;
+                remove(y);
+                rem->dat=y;
+                return;
+        }
+
+
+        while(t->lchild !=rem && t->rchild !=rem)
+        {
+                //Force parent to the left
+                if(rem->dat < t->dat)
+                {
+                        t=t->lchild;
+                }
+                //Force parent to the right
+                else if(rem->dat > t->dat)
+                {
+                        t=t->rchild;
+                }
+
+        }
+
+                parent=t;
+
+        //Scenario 1: Node is a leaf
+        if(rem->lchild==NULL && rem->rchild ==NULL)
+        {
+                //1a: Node is the left leaf
+                if(parent->lchild==rem)
+                {
+                        delete rem;
+                        parent->lchild=NULL;
+                        return;
+                }
+                //2a: Node is the right leaf
+                if(parent->rchild==rem)
+                {
+                        delete rem;
+                        parent->rchild=NULL;
+                        return;
+                }
+
+
+
+        }
+
+        //Scenario 2:  Node has 1 child
+        if(rem->lchild!=NULL || rem->rchild!=NULL)
+        {
+                //2a: rem is parent's left child and rem only has a left child
+                if(parent->lchild==rem && rem->rchild==NULL)
+                        {
+                                t=rem;
+                                parent->lchild=rem->lchild;
+                                delete t;
+                                return;
+                        }
+                //2b: rem is parent's left child and rem only has a right child
+                if(parent->lchild==rem && rem->lchild==NULL)
+                        {
+                                t=rem;
+                                parent->lchild=rem->rchild;
+                                delete t;
+                                return;
+
+                        }
+                //2c: rem is parent's right child and rem only has a left child
+                if(parent->rchild==rem && rem->rchild==NULL)
+                        {
+
+                                t=rem;
+                                parent->rchild=rem->lchild;
+                                delete t;
+                                return;
+
+                        }
+
+                //2d rem is parent's right child and rem only has a right child)
+                if(parent->rchild==rem && rem->lchild==NULL)
+                        {
+                                t=rem;
+                                parent->rchild=rem->rchild;
+                                delete t;
+                                return;
+
+                        }
+
+
+        }
+
+        //Scenario 3: Node has 2 children
+        if(rem->lchild!=NULL && rem->rchild !=NULL)
+        {
+
+                t = rsmall(rem->rchild);
+                int z= t->dat;
+                remove(z);
+                rem->dat = z;
+                return;
+        }
+}
+
+
+int bstree::_numnodes(treenode *t, int x)
+{
+
+        // IN CLASS
+
+        //Empty list
+        if(t==NULL)
+                return 0;
+        x=1;
+        //Recursive cases. x somehow bubbling up
+        return x+_numnodes(t->lchild,x)+_numnodes(t->rchild,x);
+
+}
+
+int bstree::numnodes()
+{
+        int ans;
+        ans = _numnodes(root, 0);
+        return ans;
+}
+
+
+int bstree::_height(treenode * t)
+{
+        if(t==NULL)
+                return 0;
+
+        int LeftHeight=0;
+        int RightHeight=0;
+
+
+        if(t->lchild!=NULL)
+                LeftHeight=_height(t->lchild);
+
+        if(t->rchild!=NULL)
+                RightHeight=_height(t->rchild);
+
+
+        if(LeftHeight>RightHeight)
+                return LeftHeight+1;
+        else
+                return RightHeight+1;
+
+
+
+}
+
+int bstree::height()
+{
+        int ans;
+        ans = _height(root);
+        return ans;
+}
+
+
+int main(int argc, char *argv[])
+{
+        bstree * t;
+        int i, x, cmd;
+        ifstream ifp;
+
+        if (argc != 2)
+        {
+                cout << "ERROR:  no BST CMD file " << endl;
+                return 2;
+        }
+
+        ifp.open( argv[1] );
+
+        if ( ! ifp.is_open() )
+        {
+                 cout << "ERROR: file " << argv[1] << " could not be opened" << endl;
+                 return 3;
+        }
+
+        t = new bstree();
+
+        // read the command file
+        int order=0;
+        int num=0;
+
+
+        ifp >> order;
+
+        while(!feof||order!=0)
+        {
+                switch(order)
+                {
+                        //Insert
+                        case 1:
+                                ifp >> num;
+                                t->insert(num);
+                                break;
+                        //Delete
+                        case -1:
+                                ifp >> num;
+                                t->remove(num);
+                                break;
+                        //Items in the list
+                        case 2:
+                                int NumCount;
+                                NumCount=t->numnodes();
+                                cout << endl << NumCount << " have been found in the list" << endl;
+                                break;
+
+                        //Pre-Order print Out
+                        case 3:
+                                cout << "Preorder: ";
+                                t->pre();
+                                printf("\n");
+                                break;
+
+
+                        //Inorder
+                        case 4:
+                                        cout << "Inorder: ";
+                                        t->in();
+                                        cout << endl;
+                                        break;
+
+                        //PostOrder
+                        case 5:
+                                        cout << "Post order: ";
+                                        t->post();
+                                        cout << endl;
+                                        break;
+
+                        //Parenthetical stuff
+                        case 6:
+                                t->paren();
+                                break;
+
+                        //invalid number
+                        default:
+                                cout << "Give me a valid number, dummy!" << endl;
+                                break;
+
+                }
+                ifp >> order;
+        }
+
+
+        return 0;
+}
